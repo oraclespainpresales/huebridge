@@ -224,10 +224,12 @@ router.get(PING, function(req, res) {
   var response = _.noop();
   if (!hueapi) {
       response = "API unavailable";
+      log.error(HUE, response);
       res.status(status).send(response);
   } else {
       hueapi.getFullState(function(err, config) {
         if (err) {
+          log.error(HUE, err.message);
           response = err.message;
         } else {
           status = 200;

@@ -20,9 +20,12 @@ const commandLineArgs = require('command-line-args')
 // Initialize input arguments
 const optionDefinitions = [
   { name: 'verbose', alias: 'v', type: Boolean },
-  { name: 'huebridge', alias: 'h', type: String, defaultOption: false }
+  { name: 'huebridge', alias: 'h', type: String, defaultOption: false },
+  { name: 'timeout', alias: 't', type:Number }
 ]
 const options = commandLineArgs(optionDefinitions);
+
+const timeout = options.timeout ? options.timeout : 10000;
 
 log.level     = options.verbose ? 'verbose' : 'info';
 log.timestamp = true;
@@ -59,6 +62,7 @@ const URI     = '/hue';
 const STATUS  = '/status/:id?';
 const LIGHTOP = '/:id/:op/:color?';
 const PING    = '/ping';
+const RESET   = '/reset';
 
 // Methods:
 // GET:
@@ -72,8 +76,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 // HUE vars and cons
-var   HUEHOST = undefined;
-var   hueapi  = undefined;
+var   HUEHOST = _.noop();
+var   hueapi  = _.noop();
 const HUEAPP  = 'IoT_Racing#oraclespainpresales';
 const HUEUSER = '2waMvHlSkmMUar9urA9E8z1yfVtqINvxdU9Wbafa';
 var   LIGHTS  = [];
@@ -234,6 +238,13 @@ router.get(PING, function(req, res) {
   }
 });
 
+router.post(RESET, function(req, res) {
+  log.verbose(PROCESS, "RESET");
+  init(() => {
+    res.status(204).send();
+  });
+});
+
 router.get('/', function(req, res) {
   log.verbose(PROCESS, "HELP: %j", req.params);
   res.status(204).send();
@@ -243,61 +254,78 @@ app.use(URI, router);
 // REST stuff - END
 
 // Initialization code
-async.series([
-  function(callback) {
-    log.verbose(HUE, "Looking for Hue Bridges...");
-    if (options.huebridge) {
-      log.info(HUE, "Hue Bridge manually set at " + options.huebridge);
-      HUEHOST = options.huebridge;
-      hueapi = new HueApi(HUEHOST, HUEUSER);
+function init(done) {
+  async.series([
+    function(callback) {
+      LIGHTS  = []; // This might be called upon a RESET request
+      HUEHOST = _.noop();
+      hueapi  = _.noop();
       callback(null);
-    } else {
-      hue.nupnpSearch(function(err, result) {
-        if (err) { callback(err); return; }
-        if (result.length == 1) {
-          log.verbose(HUE, "Hue Bridge Found[%s] with IP address: %s", result[0].id, result[0].ipaddress);
-          HUEHOST = result[0].ipaddress;
-          hueapi = new HueApi(HUEHOST, HUEUSER);
-          callback(null);
-        } else {
-          callback(new Error("No Hues found. Aborting."));
-        }
-      });
-    }
-  },
-  function(callback) {
-    // Retrieve available lights
-    log.verbose(HUE, "Looking for registered lights...");
-    hueapi.lights(function(err, l) {
-      if (err) {
-        log.error(HUE, "Error getting registered lights: " + err.message);
+    },
+    function(callback) {
+      log.verbose(HUE, "Looking for Hue Bridges...");
+      if (options.huebridge) {
+        log.info(HUE, "Hue Bridge manually set at " + options.huebridge);
+        HUEHOST = options.huebridge;
+        hueapi = new HueApi(HUEHOST, HUEUSER, timeout);
         callback(null);
-        return;
+      } else {
+        hue.nupnpSearch(function(err, result) {
+          if (err) { callback(err); return; }
+          if (result.length == 1) {
+            log.verbose(HUE, "Hue Bridge Found[%s] with IP address: %s", result[0].id, result[0].ipaddress);
+            HUEHOST = result[0].ipaddress;
+            hueapi = new HueApi(HUEHOST, HUEUSER);
+            callback(null);
+          } else {
+            log.error(HUE, "No Hues found.");
+            callback(null);
+          }
+        });
       }
-      _.each(l.lights, (light) => {
-        LIGHTS.push( {
-          name: light.name,
-          light: new Light(hueapi, {
-            id: light.id,
-            name: light.name,
-            reachable: light.state.reachable,
-            color: undefined
-          }, (light.state.on) ? ON : OFF, log)
-        } );
-        log.verbose(HUE, "id: %s, name: %s, online: %s, status: %s", light.id, light.name, light.state.reachable, (light.state.on) ? ON : OFF);
-      });
-      callback(null);
-    });
-  },
-  function(callback) {
-    // All OK, start the REST server
-    server.listen(PORT, function() {
-      log.info(PROCESS, "REST server running on http://localhost:" + PORT + URI);
-      callback(null);
-    });
-  }
-],
-// optional callback
-function(err, results) {
-  if (err) log.error(PROCESS, err.message);
+    },
+    function(callback) {
+      // Retrieve available lights
+      if (hueapi) {
+        log.verbose(HUE, "Looking for registered lights...");
+        hueapi.lights(function(err, l) {
+          if (err) {
+            log.error(HUE, "Error getting registered lights: " + err.message);
+            callback(null);
+            return;
+          }
+          _.each(l.lights, (light) => {
+            LIGHTS.push( {
+              name: light.name,
+              light: new Light(hueapi, {
+                id: light.id,
+                name: light.name,
+                reachable: light.state.reachable,
+                color: undefined
+              }, (light.state.on) ? ON : OFF, log)
+            } );
+            log.verbose(HUE, "id: %s, name: %s, online: %s, status: %s", light.id, light.name, light.state.reachable, (light.state.on) ? ON : OFF);
+          });
+          callback(null);
+        });
+      } else {
+        callback(null);
+      }
+    },
+    function(callback) {
+      done();
+    }
+  ],
+  // optional callback
+  function(err, results) {
+    if (err) log.error(PROCESS, err.message);
+    done();
+  });
+}
+
+init(() => {
+  // All OK, start the REST server
+  server.listen(PORT, function() {
+    log.info(PROCESS, "REST server running on http://localhost:" + PORT + URI);
+  });
 });

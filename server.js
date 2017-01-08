@@ -270,8 +270,8 @@ async.series([
     log.verbose(HUE, "Looking for registered lights...");
     hueapi.lights(function(err, l) {
       if (err) {
-        console.log("!!");
-        callback(err);
+        log.error(HUE, "Error getting registered lights: " + err.message);
+        callback(null);
         return;
       }
       _.each(l.lights, (light) => {

@@ -58,6 +58,7 @@ const PORT    = 3378;
 const URI     = '/hue';
 const STATUS  = '/status/:id?';
 const LIGHTOP = '/:id/:op/:color?';
+const PING    = '/ping';
 
 // Methods:
 // GET:
@@ -211,6 +212,26 @@ router.get(STATUS, function(req, res) {
     status = 200;
   }
   res.status(status).send(response);
+});
+
+router.get(PING, function(req, res) {
+  log.verbose(PROCESS, "PING");
+  var status = 500;
+  var response = _.noop();
+  if (!hueapi) {
+      response = "API unavailable";
+      res.status(status).send(response);
+  } else {
+      hueapi.getFullState(function(err, config) {
+        if (err) {
+          response = err.message;
+        } else {
+          status = 200;
+          response = config;
+        }
+        res.status(status).send(response);
+      });
+  }
 });
 
 router.get('/', function(req, res) {

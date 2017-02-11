@@ -175,6 +175,7 @@ method.blink = function(color) {
 method.blinkonce = function(color) {
   var self = this;
   return new Promise((resolve, reject) => {
+    var currentColor = self._light.color;
     self._log.verbose(HUE, "BLINKONCE request for " + self._light.name + " on " + color);
     if ( !self._light.reachable) {
       resolve("Light '" + self._light.name + "' not reachable");
@@ -212,7 +213,7 @@ method.blinkonce = function(color) {
         });
       },
       function(callback) {
-        self.on(self._light.color)
+        self.on(currentColor)
         .then((result) => {
           callback(null);
         })

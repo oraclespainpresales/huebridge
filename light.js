@@ -107,7 +107,7 @@ method.blink = function(color) {
       return;
     }
     if ( self._status === BLINKING) {
-      if ( self.light.color === color) {
+      if ( self._light.color === color) {
         resolve("Light '" + self._light.name + "' already blinking on the requested color, nothing to do.");
         return;
       } else {
@@ -175,14 +175,14 @@ method.blink = function(color) {
 method.blinkonce = function(color) {
   var self = this;
   return new Promise((resolve, reject) => {
-    var currentColor = self.light.color;
+    var currentColor = self._light.color;
     self._log.verbose(HUE, "BLINKONCE request for " + self._light.name + " on " + color);
     if ( !self._light.reachable) {
       resolve("Light '" + self._light.name + "' not reachable");
       return;
     }
     if ( self._status === BLINKING) {
-      if ( self.light.color === color) {
+      if ( self._light.color === color) {
         resolve("Light '" + self._light.name + "' already blinking on the requested color, nothing to do.");
         return;
       } else {
@@ -209,7 +209,7 @@ method.blinkonce = function(color) {
           callback(null);
         })
         .done(() => {
-          callback(null);          
+          callback(null);
         });
       },
       function(callback) {

@@ -193,6 +193,16 @@ method.blinkonce = function(color) {
     }
     async.series([
       function(callback) {
+        self.off()
+        .then((result) => {
+          callback(null)
+        })
+        .catch((err) => {
+          reject(err);
+          return;
+        });        
+      },
+      function(callback) {
         self.on(color)
         .then((result) => {
           callback(null);

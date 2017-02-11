@@ -109,7 +109,7 @@ const RESET   = '/reset';
 // /hue/:id : return status of the light with id {id}
 //
 // PUT:
-// /hue/:id/:op/:color : OP: ON|OFF|BLINK ; COLOR: RED|GREEN
+// /hue/:id/:op/:color : OP: ON|OFF|BLINK|BLINKONCE ; COLOR: RED|GREEN|BLUE
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -131,6 +131,7 @@ const hueBLUE    = 46920;
 const ON         = 'ON';
 const OFF        = 'OFF';
 const BLINK      = 'BLINK';
+const BLINKONCE  = 'BLINKONCE';
 var sON          = lightState.create().turnOn().bri(brightness).sat(saturation);
 var sOFF         = lightState.create().turnOff();
 var sBLINK       = lightState.create().alert('select');
@@ -196,6 +197,20 @@ router.put(LIGHTOP, function(req, res) {
       });
     } else if (lightOp === BLINK) {
       l.light.blink(color.hue)
+      .then((err) =>  {
+        if (err) {
+          log.verbose(HUE, err);
+          res.status(400).send(err);
+        } else {
+          res.status(204).send();
+        }
+      })
+      .catch((err) => {
+        log.verbose(HUE, err);
+        res.status(500).send(err);
+      });
+    } else if (lightOp === BLINKONCE) {
+      l.light.blinkonce(color.hue)
       .then((err) =>  {
         if (err) {
           log.verbose(HUE, err);

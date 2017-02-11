@@ -108,7 +108,7 @@ method.blink = function(color) {
     }
     if ( self._status === BLINKING) {
       if ( self.light.color === color) {
-        resolve("Light '" + self._light.name + "' already blinking onthe requested color, nothing to do.");
+        resolve("Light '" + self._light.name + "' already blinking on the requested color, nothing to do.");
         return;
       } else {
         clearInterval(this._blinkTimer);
@@ -160,6 +160,67 @@ method.blink = function(color) {
         } else {
           callback(null);
         }
+      }
+    ],
+    function(err, results) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(null);
+      }
+    });
+  });
+}
+
+method.blinkonce = function(color) {
+  var self = this;
+  return new Promise((resolve, reject) => {
+    var currentColor = self.light.color;
+    self._log.verbose(HUE, "BLINKONCE request for " + self._light.name + " on " + color);
+    if ( !self._light.reachable) {
+      resolve("Light '" + self._light.name + "' not reachable");
+      return;
+    }
+    if ( self._status === BLINKING) {
+      if ( self.light.color === color) {
+        resolve("Light '" + self._light.name + "' already blinking on the requested color, nothing to do.");
+        return;
+      } else {
+        clearInterval(this._blinkTimer);
+        self._status = OFF;
+        self._light.color = _.noop();
+      }
+    }
+    async.series([
+      function(callback) {
+        self.on(color)
+        .then((result) => {
+          callback(null);
+        })
+        .catch((err) => {
+          reject(err);
+          return;
+        });
+      },
+      function(callback) {
+        self._hueapi.setLightState(self._light.id, sBLINK)
+        .fail((err) => {
+          reject(err);
+          callback(null);
+        })
+        .done(() => {
+          callback(null);          
+        });
+      },
+      function(callback) {
+        self.on(currentColor)
+        .then((result) => {
+          callback(null);
+        })
+        .catch((err) => {
+          reject(err);
+          return;
+        });
       }
     ],
     function(err, results) {

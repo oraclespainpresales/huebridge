@@ -8,7 +8,8 @@ var log = require('npmlog-ts')
   , Light = require('./light')
 ;
 
-const commandLineArgs = require('command-line-args')
+const  commandLineArgs = require('command-line-args')
+     , getUsage = require('command-line-usage')
      , async = require('async')
      , express = require('express')
      , http = require('http')
@@ -18,12 +19,50 @@ const commandLineArgs = require('command-line-args')
 ;
 
 // Initialize input arguments
+const sections = [
+  {
+    header: 'IoT Racing - Philips Hue Wrapper',
+    content: 'Wrapper to control Philips Hue Lights'
+  },
+  {
+    header: 'Options',
+    optionList: [
+      {
+        name: 'huebridge',
+        typeLabel: '[underline]{IP address or hostname}',
+        alias: 'h',
+        type: String,
+        description: 'HUE Bridge fixed IP address or hostbname'
+      },
+      {
+        name: 'timeout',
+        typeLabel: '[underline]{Timeout in milliseconds}',
+        alias: 't',
+        type: Number,
+        description: 'Communications timeout.'
+      },
+      {
+        name: 'verbose',
+        alias: 'v',
+        description: 'Enable verbose logging.'
+      }
+    ]
+  }
+]
+
 const optionDefinitions = [
   { name: 'verbose', alias: 'v', type: Boolean },
   { name: 'huebridge', alias: 'h', type: String, defaultOption: false },
   { name: 'timeout', alias: 't', type:Number }
 ]
-const options = commandLineArgs(optionDefinitions);
+var options = undefined;
+try {
+  options = commandLineArgs(optionDefinitions);
+} catch (e) {
+  console.log(getUsage(sections));
+  console.log(e.message);
+  process.exit(-1);
+}
 
 const timeout = options.timeout ? options.timeout : 10000;
 

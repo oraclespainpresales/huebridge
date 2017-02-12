@@ -102,6 +102,7 @@ const STATUS  = '/status/:id?';
 const LIGHTOP = '/:id/:op/:color?';
 const PING    = '/ping';
 const RESET   = '/reset';
+const TEST    = '/test';
 
 // Methods:
 // GET:
@@ -235,6 +236,8 @@ router.put(LIGHTOP, function(req, res) {
         _l.light.off();
       } else if (lightOp === BLINK) {
         _l.light.blink(color.hue);
+      } else if (lightOp === BLINKONCE) {
+        _l.light.blinkonce(color.hue);
       } else {
         res.status(400).send("Operation '" + lightOp + "' is not valid");
       }
@@ -300,6 +303,14 @@ router.post(RESET, function(req, res) {
   init(() => {
     res.status(204).send();
   });
+});
+
+router.post(TEST, function(req, res) {
+  log.verbose(PROCESS, "TEST");
+  async.each(LIGHTS, (_l) => {
+    _l.light.blinkonce(color.hue);
+  });
+  res.status(204).send();
 });
 
 router.get('/', function(req, res) {

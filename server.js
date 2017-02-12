@@ -310,7 +310,15 @@ router.post(TEST, function(req, res) {
   async.series([
     function(callback) {
       async.each(LIGHTS, (_l) => {
-        _l.light.on(hueGREEN);
+        _l.light.on(hueGREEN)
+        .then((err) =>  {
+          if (err) {
+            log.verbose(HUE, err);
+          }
+        })
+        .catch((err) => {
+          log.verbose(HUE, err);
+        });
       }, (err) => {
         console.log("done 1");
         callback(null);
@@ -318,7 +326,15 @@ router.post(TEST, function(req, res) {
     },
     function(callback) {
       async.each(LIGHTS, (_l) => {
-        _l.light.off();
+        _l.light.off()
+        .then((err) =>  {
+          if (err) {
+            log.verbose(HUE, err);
+          }
+        })
+        .catch((err) => {
+          log.verbose(HUE, err);
+        });
       }, (err) => {
         console.log("done 2");
         callback(null);

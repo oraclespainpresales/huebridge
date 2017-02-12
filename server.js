@@ -307,13 +307,24 @@ router.post(RESET, function(req, res) {
 
 router.post(TEST, function(req, res) {
   log.verbose(PROCESS, "TEST");
-  async.each(LIGHTS, (_l) => {
-    _l.light.on(hueGREEN);
-  });
-  async.each(LIGHTS, (_l) => {
-    _l.light.off();
-  });
-  res.status(204).send();
+  async.series([
+    function(callback) {
+      async.each(LIGHTS, (_l) => {
+        _l.light.on(hueGREEN);
+      });
+      callback(null);
+    },
+    function(callback) {
+      async.each(LIGHTS, (_l) => {
+        _l.light.off();
+      });
+      callback(null);
+    },
+    function(callback) {
+      res.status(204).send();
+      callback(null);
+    }
+  ]);
 });
 
 router.get('/', function(req, res) {

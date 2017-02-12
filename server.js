@@ -311,14 +311,16 @@ router.post(TEST, function(req, res) {
     function(callback) {
       async.each(LIGHTS, (_l) => {
         _l.light.on(hueGREEN);
+      }, () => {
+        callback(null);
       });
-      callback(null);
     },
     function(callback) {
       async.each(LIGHTS, (_l) => {
         _l.light.off();
+      }, () => {
+        callback(null);
       });
-      callback(null);
     },
     function(callback) {
       res.status(204).send();

@@ -100,7 +100,7 @@ const PORT    = 3378;
 const URI     = '/hue';
 const STATUS  = '/status/:id?';
 const LIGHTOP = '/:id/:op/:color?';
-const STATUS  = '/status';
+const PING    = '/ping';
 const RESET   = '/reset';
 
 // Methods:
@@ -275,8 +275,8 @@ router.get(STATUS, function(req, res) {
   res.status(status).send(response);
 });
 
-router.get(STATUS, function(req, res) {
-  log.verbose(PROCESS, "STATUS");
+router.get(PING, function(req, res) {
+  log.verbose(PROCESS, "PING");
   var status = 500;
   var response = _.noop();
   if (!hueapi) {

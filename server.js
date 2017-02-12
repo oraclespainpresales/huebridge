@@ -100,9 +100,8 @@ const PORT    = 3378;
 const URI     = '/hue';
 const STATUS  = '/status/:id?';
 const LIGHTOP = '/:id/:op/:color?';
-const PING    = '/ping';
+const STATUS  = '/status';
 const RESET   = '/reset';
-const TEST    = '/test';
 
 // Methods:
 // GET:
@@ -276,8 +275,8 @@ router.get(STATUS, function(req, res) {
   res.status(status).send(response);
 });
 
-router.get(PING, function(req, res) {
-  log.verbose(PROCESS, "PING");
+router.get(STATUS, function(req, res) {
+  log.verbose(PROCESS, "STATUS");
   var status = 500;
   var response = _.noop();
   if (!hueapi) {
@@ -303,48 +302,6 @@ router.post(RESET, function(req, res) {
   init(() => {
     res.status(204).send();
   });
-});
-
-router.post(TEST, function(req, res) {
-  log.verbose(PROCESS, "TEST");
-  async.series([
-    function(callback) {
-      async.each(LIGHTS, (_l) => {
-        _l.light.on(hueGREEN)
-        .then((err) =>  {
-          if (err) {
-            log.verbose(HUE, err);
-          }
-        })
-        .catch((err) => {
-          log.verbose(HUE, err);
-        });
-      }, (err) => {
-        console.log("done 1");
-        callback(null);
-      });
-    },
-    function(callback) {
-      async.each(LIGHTS, (_l) => {
-        _l.light.off()
-        .then((err) =>  {
-          if (err) {
-            log.verbose(HUE, err);
-          }
-        })
-        .catch((err) => {
-          log.verbose(HUE, err);
-        });
-      }, (err) => {
-        console.log("done 2");
-        callback(null);
-      });
-    },
-    function(callback) {
-      res.status(204).send();
-      callback(null);
-    }
-  ]);
 });
 
 router.get('/', function(req, res) {

@@ -308,7 +308,7 @@ router.post(RESET, function(req, res) {
 router.post(TEST, function(req, res) {
   log.verbose(PROCESS, "TEST");
   async.each(LIGHTS, (_l) => {
-    _l.light.blinkonce(color.hue);
+    _l.light.blinkonce(hueGREEN);
   });
   res.status(204).send();
 });

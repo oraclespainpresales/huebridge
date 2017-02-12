@@ -128,6 +128,7 @@ const saturation = 255;
 const hueRED     = 0;
 const hueGREEN   = 25500;
 const hueBLUE    = 46920;
+const hueYELLOW  = 12750;
 const ON         = 'ON';
 const OFF        = 'OFF';
 const BLINK      = 'BLINK';
@@ -136,7 +137,7 @@ var sON          = lightState.create().turnOn().bri(brightness).sat(saturation);
 var sOFF         = lightState.create().turnOff();
 var sBLINK       = lightState.create().alert('select');
 //const OPS        = [ { op:ON, f: changeStatus, state: sON }, { op: 'OFF', f: changeStatus, state: sOFF }, { op:'BLINK', f:blink, state: sBLINK } ];
-const COLORS     = [ { color: 'RED', hue: hueRED }, { color: 'GREEN', hue: hueGREEN }, { color: 'BLUE', hue: hueBLUE } ];
+const COLORS     = [ { color: 'RED', hue: hueRED }, { color: 'GREEN', hue: hueGREEN }, { color: 'BLUE', hue: hueBLUE }, { color: 'YELLOW', hue: hueYELLOW } ];
 
 // REST stuff - BEGIN
 router.put(LIGHTOP, function(req, res) {

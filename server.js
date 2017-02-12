@@ -308,7 +308,10 @@ router.post(RESET, function(req, res) {
 router.post(TEST, function(req, res) {
   log.verbose(PROCESS, "TEST");
   async.each(LIGHTS, (_l) => {
-    _l.light.blinkonce(hueGREEN);
+    _l.light.on(hueGREEN);
+  });
+  async.each(LIGHTS, (_l) => {
+    _l.light.off();
   });
   res.status(204).send();
 });

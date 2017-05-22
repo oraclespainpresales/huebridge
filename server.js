@@ -14,7 +14,6 @@ const  commandLineArgs = require('command-line-args')
      , express = require('express')
      , http = require('http')
      , bodyParser = require('body-parser')
-     , util = require('util')
      , _ = require('lodash')
 ;
 

@@ -20,6 +20,7 @@
     "async": "^2.1.4",
     "body-parser": "^1.15.2",
     "command-line-args": "^3.0.5",
+    "command-line-usage": "^4.0.2",
     "express": "^4.14.0",
     "lodash": "^4.17.3",
     "node-hue-api": "^2.3.0",
